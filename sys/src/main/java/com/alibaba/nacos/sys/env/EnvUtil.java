@@ -27,20 +27,13 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Its own configuration information manipulation tool class.
@@ -79,7 +72,7 @@ public class EnvUtil {
     private static String nacosHomePath = null;
 
     private static final OperatingSystemMXBean OPERATING_SYSTEM_MX_BEAN = (com.sun.management.OperatingSystemMXBean) ManagementFactory
-            .getOperatingSystemMXBean();
+        .getOperatingSystemMXBean();
 
     private static ConfigurableEnvironment environment;
 
@@ -89,6 +82,20 @@ public class EnvUtil {
 
     public static void setEnvironment(ConfigurableEnvironment environment) {
         EnvUtil.environment = environment;
+        port = getTomcatPort();
+    }
+
+    public static int getTomcatPort() {
+        try {
+            MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
+            Set<ObjectName> objectNames = beanServer.queryNames(new ObjectName("*:type=Connector,*"),
+                javax.management.Query.match(javax.management.Query.attr("protocol"), javax.management.Query.value("HTTP/1.1")));
+            String port = objectNames.iterator().next().getKeyProperty("port");
+
+            return Integer.parseInt(port);
+        } catch (Exception e) {
+            return 8848;
+        }
     }
 
     public static boolean containsProperty(String key) {
@@ -190,7 +197,7 @@ public class EnvUtil {
         if (Objects.isNull(isStandalone)) {
             isStandalone = Boolean.getBoolean(Constants.STANDALONE_MODE_PROPERTY_NAME);
         }
-        return isStandalone;
+        return false;
     }
 
     /**
@@ -282,7 +289,7 @@ public class EnvUtil {
     public static List<String> readClusterConf() throws IOException {
         try (Reader reader = new InputStreamReader(EnvUtil.class.getClassLoader().getResourceAsStream("cluster.conf"))) {
             return analyzeClusterConf(reader);
-        } catch (FileNotFoundException ignore) {
+        } catch (Exception ignore) {
             List<String> tmp = new ArrayList<>();
             String clusters = EnvUtil.getMemberList();
             if (StringUtils.isNotBlank(clusters)) {

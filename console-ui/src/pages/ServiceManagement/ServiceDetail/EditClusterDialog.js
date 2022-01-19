@@ -16,9 +16,9 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { request } from '../../../globalLib';
-import { Dialog, Form, Input, Switch, Select, Message, ConfigProvider } from '@alifd/next';
-import { DIALOG_FORM_LAYOUT, METADATA_SEPARATOR, METADATA_ENTER } from './constant';
+import {request} from '../../../globalLib';
+import {ConfigProvider, Dialog, Form, Input, Message, Select, Switch} from '@alifd/next';
+import {DIALOG_FORM_LAYOUT} from './constant';
 import MonacoEditor from 'components/MonacoEditor';
 
 @ConfigProvider.config
@@ -68,8 +68,8 @@ class EditClusterDialog extends React.Component {
       healthChecker,
     } = this.state.editCluster;
     request({
-      method: 'PUT',
-      url: 'v1/ns/cluster',
+      method: 'POST',
+      url: 'v1/ns/cluster/update',
       data: {
         serviceName,
         clusterName: name,

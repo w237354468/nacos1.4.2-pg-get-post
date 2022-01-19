@@ -16,8 +16,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { request } from '../../globalLib';
-import { Button, ConfigProvider, Dialog, Field, Form, Input, Loading } from '@alifd/next';
+import {request} from '../../globalLib';
+import {Button, ConfigProvider, Dialog, Field, Form, Input, Loading} from '@alifd/next';
 
 import './index.scss';
 
@@ -97,11 +97,11 @@ class EditorNameSpace extends React.Component {
         return;
       }
       request({
-        type: 'put',
+        type: 'post',
         beforeSend: () => {
           this.openLoading();
         },
-        url: 'v1/console/namespaces',
+        url: 'v1/console/namespaces/update',
         contentType: 'application/x-www-form-urlencoded',
         data: {
           namespace: values.namespace,

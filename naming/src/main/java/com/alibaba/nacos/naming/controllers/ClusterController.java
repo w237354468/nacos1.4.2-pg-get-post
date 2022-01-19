@@ -34,7 +34,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,10 +48,10 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping(UtilsAndCommons.NACOS_NAMING_CONTEXT + "/cluster")
 public class ClusterController {
-    
+
     @Autowired
     protected ServiceManager serviceManager;
-    
+
     /**
      * Update cluster.
      *
@@ -59,33 +59,34 @@ public class ClusterController {
      * @return 'ok' if success
      * @throws Exception if failed
      */
-    @PutMapping
+    //@PutMapping
+    @PostMapping("/update")
     @Secured(action = ActionTypes.WRITE, parser = NamingResourceParser.class)
     public String update(HttpServletRequest request) throws Exception {
-        
+
         String namespaceId = WebUtils.optional(request, CommonParams.NAMESPACE_ID, Constants.DEFAULT_NAMESPACE_ID);
         String clusterName = WebUtils.required(request, CommonParams.CLUSTER_NAME);
         String serviceName = WebUtils.required(request, CommonParams.SERVICE_NAME);
         String checkPort = WebUtils.required(request, "checkPort");
-        
+
         Service service = serviceManager.getService(namespaceId, serviceName);
         if (service == null) {
             throw new NacosException(NacosException.INVALID_PARAM, "service not found:" + serviceName);
         }
-        
+
         Cluster cluster = service.getClusterMap().get(clusterName);
         if (cluster == null) {
             Loggers.SRV_LOG.warn("[UPDATE-CLUSTER] cluster not exist, will create it: {}, service: {}", clusterName,
                     serviceName);
             cluster = new Cluster(clusterName, service);
         }
-        
+
         cluster.setDefCkport(NumberUtils.toInt(checkPort));
         cluster.setUseIPPort4Check(BooleanUtils.toBoolean(WebUtils.required(request, "useInstancePort4Check")));
-        
+
         AbstractHealthChecker abstractHealthChecker = HealthCheckerFactory
                 .deserialize(WebUtils.required(request, "healthChecker"));
-        
+
         cluster.setHealthChecker(abstractHealthChecker);
         cluster.setMetadata(UtilsAndCommons.parseMetadata(WebUtils.optional(request, "metadata", StringUtils.EMPTY)));
         cluster.init();
@@ -93,10 +94,10 @@ public class ClusterController {
         service.setLastModifiedMillis(System.currentTimeMillis());
         service.recalculateChecksum();
         service.validate();
-        
+
         serviceManager.addOrReplaceService(service);
-        
+
         return "ok";
     }
-    
+
 }

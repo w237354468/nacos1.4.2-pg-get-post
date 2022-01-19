@@ -18,30 +18,29 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {
   Button,
+  ConfigProvider,
+  Dialog,
   Field,
   Form,
   Grid,
   Input,
-  Loading,
-  Pagination,
-  Table,
-  Dialog,
   Message,
-  ConfigProvider,
+  Pagination,
   Switch,
+  Table,
 } from '@alifd/next';
-import { request } from '../../../globalLib';
-import { generateUrl } from '../../../utils/nacosutil';
+import {request} from '../../../globalLib';
+import {generateUrl} from '../../../utils/nacosutil';
 import RegionGroup from '../../../components/RegionGroup';
 import EditServiceDialog from '../ServiceDetail/EditServiceDialog';
 import ShowServiceCodeing from 'components/ShowCodeing/ShowServiceCodeing';
 
 import './ServiceList.scss';
-import { GLOBAL_PAGE_SIZE_LIST } from '../../../constants';
+import {GLOBAL_PAGE_SIZE_LIST} from '../../../constants';
 
 const FormItem = Form.Item;
-const { Row, Col } = Grid;
-const { Column } = Table;
+const {Row, Col} = Grid;
+const {Column} = Table;
 
 @ConfigProvider.config
 class ServiceList extends React.Component {
@@ -151,8 +150,8 @@ class ServiceList extends React.Component {
       content: promptDelete,
       onOk: () => {
         request({
-          method: 'DELETE',
-          url: `v1/ns/service?serviceName=${service.name}&groupName=${service.groupName}`,
+          method: 'POST',
+          url: `v1/ns/service/delete?serviceName=${service.name}&groupName=${service.groupName}`,
           dataType: 'text',
           beforeSend: () => this.openLoading(),
           success: res => {

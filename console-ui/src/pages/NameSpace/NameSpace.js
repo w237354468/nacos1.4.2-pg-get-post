@@ -16,11 +16,11 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button, ConfigProvider, Dialog, Loading, Table } from '@alifd/next';
+import {Button, ConfigProvider, Dialog, Loading, Table} from '@alifd/next';
 import RegionGroup from '../../components/RegionGroup';
 import NewNameSpace from '../../components/NewNameSpace';
 import EditorNameSpace from '../../components/EditorNameSpace';
-import { getParams, setParams, request } from '../../globalLib';
+import {getParams, request, setParams} from '../../globalLib';
 
 import './index.scss';
 
@@ -182,10 +182,10 @@ class NameSpace extends React.Component {
         </div>
       ),
       onOk: () => {
-        const url = `v1/console/namespaces?namespaceId=${record.namespace}`;
+        const url = `v1/console/namespaces/delete?namespaceId=${record.namespace}`;
         request({
           url,
-          type: 'delete',
+          type: 'post',
           success: res => {
             const _payload = {};
             _payload.title = configurationManagement;
@@ -194,7 +194,7 @@ class NameSpace extends React.Component {
               if (record.namespace === urlnamespace) {
                 setParams('namespace', this.state.defaultNamespace);
               }
-              Dialog.confirm({ content: removeSuccess, title: deletedSuccessfully });
+              Dialog.confirm({content: removeSuccess, title: deletedSuccessfully});
             } else {
               Dialog.confirm({ content: res.message, title: deletedFailure });
             }

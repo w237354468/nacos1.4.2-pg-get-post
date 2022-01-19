@@ -23,12 +23,7 @@ import com.alibaba.nacos.console.security.nacos.NacosAuthConfig;
 import com.alibaba.nacos.console.security.nacos.roles.NacosRoleServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Permission operation controller.
@@ -39,10 +34,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/auth/permissions")
 public class PermissionController {
-    
+
     @Autowired
     private NacosRoleServiceImpl nacosRoleService;
-    
+
     /**
      * Query permissions of a role.
      *
@@ -57,7 +52,7 @@ public class PermissionController {
             @RequestParam(name = "role", defaultValue = StringUtils.EMPTY) String role) {
         return nacosRoleService.getPermissionsFromDatabase(role, pageNo, pageSize);
     }
-    
+
     /**
      * Add a permission to a role.
      *
@@ -72,7 +67,7 @@ public class PermissionController {
         nacosRoleService.addPermission(role, resource, action);
         return new RestResult<>(200, "add permission ok!");
     }
-    
+
     /**
      * Delete a permission from a role.
      *
@@ -81,7 +76,7 @@ public class PermissionController {
      * @param action   the related action
      * @return ok if succeed
      */
-    @DeleteMapping
+    @PostMapping("/delete")
     @Secured(resource = NacosAuthConfig.CONSOLE_RESOURCE_NAME_PREFIX + "permissions", action = ActionTypes.WRITE)
     public Object deletePermission(@RequestParam String role, @RequestParam String resource,
             @RequestParam String action) {

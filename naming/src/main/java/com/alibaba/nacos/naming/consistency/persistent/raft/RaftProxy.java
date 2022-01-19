@@ -16,10 +16,10 @@
 
 package com.alibaba.nacos.naming.consistency.persistent.raft;
 
-import com.alibaba.nacos.common.utils.IPUtil;
-import com.alibaba.nacos.sys.env.EnvUtil;
 import com.alibaba.nacos.common.model.RestResult;
+import com.alibaba.nacos.common.utils.IPUtil;
 import com.alibaba.nacos.naming.misc.HttpClient;
+import com.alibaba.nacos.sys.env.EnvUtil;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +34,7 @@ import java.util.Map;
 @Deprecated
 @Component
 public class RaftProxy {
-    
+
     /**
      * Proxy get method.
      *
@@ -49,13 +49,13 @@ public class RaftProxy {
             server = server + IPUtil.IP_PORT_SPLITER + EnvUtil.getPort();
         }
         String url = "http://" + server + EnvUtil.getContextPath() + api;
-        
+
         RestResult<String> result = HttpClient.httpGet(url, null, params);
         if (!result.ok()) {
             throw new IllegalStateException("leader failed, caused by: " + result.getMessage());
         }
     }
-    
+
     /**
      * Proxy specified method.
      *
@@ -79,18 +79,15 @@ public class RaftProxy {
             case POST:
                 result = HttpClient.httpPost(url, null, params);
                 break;
-            case DELETE:
-                result = HttpClient.httpDelete(url, null, params);
-                break;
             default:
                 throw new RuntimeException("unsupported method:" + method);
         }
-        
+
         if (!result.ok()) {
             throw new IllegalStateException("leader failed, caused by: " + result.getMessage());
         }
     }
-    
+
     /**
      * Proxy post method with large body.
      *
@@ -107,7 +104,7 @@ public class RaftProxy {
             server = server + IPUtil.IP_PORT_SPLITER + EnvUtil.getPort();
         }
         String url = "http://" + server + EnvUtil.getContextPath() + api;
-        
+
         RestResult<String> result = HttpClient.httpPostLarge(url, headers, content);
         if (!result.ok()) {
             throw new IllegalStateException("leader failed, caused by: " + result.getMessage());

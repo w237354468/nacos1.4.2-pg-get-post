@@ -26,13 +26,7 @@ import com.alibaba.nacos.console.model.NamespaceAllInfo;
 import com.alibaba.nacos.console.security.nacos.NacosAuthConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,14 +43,14 @@ import java.util.regex.Pattern;
 @RestController
 @RequestMapping("/v1/console/namespaces")
 public class NamespaceController {
-    
+
     @Autowired
     private PersistService persistService;
-    
+
     private final Pattern namespaceIdCheckPattern = Pattern.compile("^[\\w-]+");
-    
+
     private static final int NAMESPACE_ID_MAX_LENGTH = 128;
-    
+
     /**
      * Get namespace list.
      *
@@ -82,7 +76,7 @@ public class NamespaceController {
         rr.setData(namespaces);
         return rr;
     }
-    
+
     /**
      * get namespace all info by namespace id.
      *
@@ -105,7 +99,7 @@ public class NamespaceController {
                     tenantInfo.getTenantDesc());
         }
     }
-    
+
     /**
      * create namespace.
      *
@@ -139,7 +133,7 @@ public class NamespaceController {
                 System.currentTimeMillis());
         return true;
     }
-    
+
     /**
      * check namespaceId exist.
      *
@@ -153,7 +147,7 @@ public class NamespaceController {
         }
         return (persistService.tenantInfoCountByTenantId(namespaceId) > 0);
     }
-    
+
     /**
      * edit namespace.
      *
@@ -162,7 +156,7 @@ public class NamespaceController {
      * @param namespaceDesc     namespace Desc
      * @return whether edit ok
      */
-    @PutMapping
+    @PostMapping("/update")
     @Secured(resource = NacosAuthConfig.CONSOLE_RESOURCE_NAME_PREFIX + "namespaces", action = ActionTypes.WRITE)
     public Boolean editNamespace(@RequestParam("namespace") String namespace,
             @RequestParam("namespaceShowName") String namespaceShowName,
@@ -171,7 +165,7 @@ public class NamespaceController {
         persistService.updateTenantNameAtomic("1", namespace, namespaceShowName, namespaceDesc);
         return true;
     }
-    
+
     /**
      * del namespace by id.
      *
@@ -180,12 +174,12 @@ public class NamespaceController {
      * @param namespaceId namespace Id
      * @return whether del ok
      */
-    @DeleteMapping
+    @PostMapping("/delete")
     @Secured(resource = NacosAuthConfig.CONSOLE_RESOURCE_NAME_PREFIX + "namespaces", action = ActionTypes.WRITE)
     public Boolean deleteConfig(HttpServletRequest request, HttpServletResponse response,
             @RequestParam("namespaceId") String namespaceId) {
         persistService.removeTenantInfoAtomic("1", namespaceId);
         return true;
     }
-    
+
 }

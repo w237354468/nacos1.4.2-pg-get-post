@@ -295,38 +295,38 @@
                     </dependency>
                 </dependencies>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${maven-checkstyle-plugin.version}</version>
-                <configuration>
-                    <configLocation>style/NacosCheckStyle.xml</configLocation>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <encoding>UTF-8</encoding>
-                    <consoleOutput>true</consoleOutput>
-                    <failsOnError>true</failsOnError>
-                    <excludes>**/istio/model/**,**/consistency/entity/**,**/nacos/test/**</excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.rat</groupId>-->
-<!--                <artifactId>apache-rat-plugin</artifactId>-->
-<!--                <version>${apache-rat-plugin.version}</version>-->
-<!--                <configuration>-->
-<!--                    <excludes>-->
-<!--                        <exclude>.editorconfig</exclude>-->
-<!--                        <exclude>.travis.yml</exclude>-->
-<!--                        <exclude>CONTRIBUTING.md</exclude>-->
-<!--                        <exclude>CODE_OF_CONDUCT.md</exclude>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-checkstyle-plugin</artifactId>-->
+            <!--                <version>${maven-checkstyle-plugin.version}</version>-->
+            <!--                <configuration>-->
+            <!--                    <configLocation>style/NacosCheckStyle.xml</configLocation>-->
+            <!--                    <includeTestSourceDirectory>true</includeTestSourceDirectory>-->
+            <!--                    <encoding>UTF-8</encoding>-->
+            <!--                    <consoleOutput>true</consoleOutput>-->
+            <!--                    <failsOnError>true</failsOnError>-->
+            <!--                    <excludes>**/istio/model/**,**/consistency/entity/**,**/nacos/test/**</excludes>-->
+            <!--                </configuration>-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <id>validate</id>-->
+            <!--                        <phase>validate</phase>-->
+            <!--                        <goals>-->
+            <!--                            <goal>check</goal>-->
+            <!--                        </goals>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.rat</groupId>-->
+            <!--                <artifactId>apache-rat-plugin</artifactId>-->
+            <!--                <version>${apache-rat-plugin.version}</version>-->
+            <!--                <configuration>-->
+            <!--                    <excludes>-->
+            <!--                        <exclude>.editorconfig</exclude>-->
+            <!--                        <exclude>.travis.yml</exclude>-->
+            <!--                        <exclude>CONTRIBUTING.md</exclude>-->
+            <!--                        <exclude>CODE_OF_CONDUCT.md</exclude>-->
 <!--                        <exclude>CHANGELOG.md</exclude>-->
 <!--                        <exclude>style/codeStyle.md</exclude>-->
 <!--                        <exclude>REPORTING-BUGS.md</exclude>-->
@@ -622,7 +622,7 @@
         <module>client</module>
         <module>example</module>
         <module>common</module>
-        <module>distribution</module>
+        <!--        <module>distribution</module>-->
         <module>console</module>
         <module>cmdb</module>
         <module>istio</module>

@@ -22,16 +22,16 @@ import com.alibaba.nacos.common.model.RestResult;
 import com.alibaba.nacos.common.utils.IPUtil;
 import com.alibaba.nacos.common.utils.JacksonUtils;
 import com.alibaba.nacos.common.utils.VersionUtils;
+import com.alibaba.nacos.naming.cluster.transport.Serializer;
+import com.alibaba.nacos.naming.consistency.Datum;
+import com.alibaba.nacos.naming.core.Instances;
 import com.alibaba.nacos.sys.env.EnvUtil;
+import com.alibaba.nacos.sys.utils.ApplicationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Naming http proxy.
@@ -39,15 +39,15 @@ import java.util.Map;
  * @author nacos
  */
 public class NamingProxy {
-    
-    private static final String DATA_ON_SYNC_URL = "/distro/datum";
-    
+
+    private static final String DATA_ON_SYNC_URL = "/distro/datum/update";
+
     private static final String DATA_GET_URL = "/distro/datum";
-    
+
     private static final String ALL_DATA_GET_URL = "/distro/datums";
-    
+
     private static final String TIMESTAMP_SYNC_URL = "/distro/checksum";
-    
+
     /**
      * Synchronize check sums.
      *
@@ -57,7 +57,7 @@ public class NamingProxy {
     public static void syncCheckSums(Map<String, String> checksumMap, String server) {
         syncCheckSums(JacksonUtils.toJsonBytes(checksumMap), server);
     }
-    
+
     /**
      * Synchronize check sums.
      *
@@ -66,42 +66,46 @@ public class NamingProxy {
      */
     public static void syncCheckSums(byte[] checksums, String server) {
         try {
-            Map<String, String> headers = new HashMap<>(128);
-            
-            headers.put(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.version);
-            headers.put(HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION);
-            headers.put(HttpHeaderConsts.CONNECTION, "Keep-Alive");
-            
-            HttpClient.asyncHttpPutLarge(
-                    "http://" + server + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT
-                            + TIMESTAMP_SYNC_URL + "?source=" + NetUtils.localServer(), headers, checksums,
-                    new Callback<String>() {
-                        @Override
-                        public void onReceive(RestResult<String> result) {
-                            if (!result.ok()) {
-                                Loggers.DISTRO.error("failed to req API: {}, code: {}, msg: {}",
-                                        "http://" + server + EnvUtil.getContextPath()
-                                                + UtilsAndCommons.NACOS_NAMING_CONTEXT + TIMESTAMP_SYNC_URL,
-                                        result.getCode(), result.getMessage());
+            //Map<String, String> headers = new HashMap<>(128);
+
+            //headers.put(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.version);
+            //headers.put(HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION);
+            //headers.put(HttpHeaderConsts.CONNECTION, "Keep-Alive");
+
+            List<String> headers = Arrays.asList(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.version,
+                HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION, HttpHeaderConsts.CONNECTION, "Keep-Alive");
+
+            // 此处由asyncHttpPutLarge改为AsyncHttpPostLarge，参数的header修改为List对象
+            HttpClient.asyncHttpPostLarge(
+                "http://" + server + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT
+                    + TIMESTAMP_SYNC_URL + "?source=" + NetUtils.localServer(), headers, checksums,
+                new Callback<String>() {
+                    @Override
+                    public void onReceive(RestResult<String> result) {
+                        if (!result.ok()) {
+                            Loggers.DISTRO.error("failed to req API: {}, code: {}, msg: {}",
+                                "http://" + server + EnvUtil.getContextPath()
+                                    + UtilsAndCommons.NACOS_NAMING_CONTEXT + TIMESTAMP_SYNC_URL,
+                                result.getCode(), result.getMessage());
                             }
                         }
-                        
-                        @Override
+
+                    @Override
                         public void onError(Throwable throwable) {
                             Loggers.DISTRO.error("failed to req API:" + "http://" + server + EnvUtil.getContextPath()
                                     + UtilsAndCommons.NACOS_NAMING_CONTEXT + TIMESTAMP_SYNC_URL, throwable);
                         }
-                        
-                        @Override
+
+                    @Override
                         public void onCancel() {
-                        
-                        }
+
+                    }
                     });
         } catch (Exception e) {
             Loggers.DISTRO.warn("NamingProxy", e);
         }
     }
-    
+
     /**
      * Get Data from other server.
      *
@@ -111,22 +115,22 @@ public class NamingProxy {
      * @throws Exception exception
      */
     public static byte[] getData(List<String> keys, String server) throws Exception {
-        
+
         Map<String, String> params = new HashMap<>(8);
         params.put("keys", StringUtils.join(keys, ","));
         RestResult<String> result = HttpClient.httpGetLarge(
                 "http://" + server + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT + DATA_GET_URL,
                 new HashMap<>(8), JacksonUtils.toJson(params));
-        
+
         if (result.ok()) {
             return result.getData().getBytes();
         }
-        
+
         throw new IOException("failed to req API: " + "http://" + server + EnvUtil.getContextPath()
                 + UtilsAndCommons.NACOS_NAMING_CONTEXT + DATA_GET_URL + ". code: " + result.getCode() + " msg: "
                 + result.getMessage());
     }
-    
+
     /**
      * Get all datum from target server.
      *
@@ -135,21 +139,21 @@ public class NamingProxy {
      * @throws Exception exception
      */
     public static byte[] getAllData(String server) throws Exception {
-        
+
         Map<String, String> params = new HashMap<>(8);
         RestResult<String> result = HttpClient.httpGet(
                 "http://" + server + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT + ALL_DATA_GET_URL,
                 new ArrayList<>(), params);
-        
+
         if (result.ok()) {
             return result.getData().getBytes();
         }
-        
+
         throw new IOException("failed to req API: " + "http://" + server + EnvUtil.getContextPath()
                 + UtilsAndCommons.NACOS_NAMING_CONTEXT + ALL_DATA_GET_URL + ". code: " + result.getCode() + " msg: "
                 + result.getMessage());
     }
-    
+
     /**
      * Synchronize datum to target server.
      *
@@ -159,17 +163,25 @@ public class NamingProxy {
      */
     public static boolean syncData(byte[] data, String curServer) {
         Map<String, String> headers = new HashMap<>(128);
-        
+
         headers.put(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.version);
         headers.put(HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION);
         headers.put(HttpHeaderConsts.ACCEPT_ENCODING, "gzip,deflate,sdch");
         headers.put(HttpHeaderConsts.CONNECTION, "Keep-Alive");
         headers.put(HttpHeaderConsts.CONTENT_ENCODING, "gzip");
-        
+
         try {
-            RestResult<String> result = HttpClient.httpPutLarge(
-                    "http://" + curServer + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT
-                            + DATA_ON_SYNC_URL, headers, data);
+            // 此处将集群的数据同步接口从 httpPutLarge改为httpPost
+            //RestResult<String> result = HttpClient.httpPutLarge(
+            // "http://" + curServer + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT
+            //                + DATA_ON_SYNC_URL, headers, data);
+
+            // put为byte[] post为String，将数据反序列化为Map，再转换为json
+            Map<String, Datum<Instances>> deserialize = ApplicationUtils.getBean(Serializer.class).deserializeMap(data, Instances.class);
+            String dataJson = JacksonUtils.toJson(deserialize);
+            RestResult<String> result = HttpClient.httpPostLarge(
+                "http://" + curServer + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT
+                    + DATA_ON_SYNC_URL, headers, dataJson);
             if (result.ok()) {
                 return true;
             }
@@ -177,14 +189,14 @@ public class NamingProxy {
                 return true;
             }
             throw new IOException("failed to req API:" + "http://" + curServer + EnvUtil.getContextPath()
-                    + UtilsAndCommons.NACOS_NAMING_CONTEXT + DATA_ON_SYNC_URL + ". code:" + result.getCode() + " msg: "
+                + UtilsAndCommons.NACOS_NAMING_CONTEXT + DATA_ON_SYNC_URL + ". code:" + result.getCode() + " msg: "
                     + result.getData());
         } catch (Exception e) {
             Loggers.SRV_LOG.warn("NamingProxy", e);
         }
         return false;
     }
-    
+
     /**
      * request api.
      *
@@ -199,23 +211,23 @@ public class NamingProxy {
             List<String> headers = Arrays.asList(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.version,
                     HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION, "Accept-Encoding",
                     "gzip,deflate,sdch", "Connection", "Keep-Alive", "Content-Encoding", "gzip");
-            
+
             RestResult<String> result;
-            
+
             if (!IPUtil.containsPort(curServer)) {
                 curServer = curServer + IPUtil.IP_PORT_SPLITER + EnvUtil.getPort();
             }
-            
+
             result = HttpClient.httpGet("http://" + curServer + api, headers, params);
-            
+
             if (result.ok()) {
                 return result.getData();
             }
-            
+
             if (HttpURLConnection.HTTP_NOT_MODIFIED == result.getCode()) {
                 return StringUtils.EMPTY;
             }
-            
+
             throw new IOException(
                     "failed to req API:" + "http://" + curServer + api + ". code:" + result.getCode() + " msg: "
                             + result.getMessage());
@@ -224,7 +236,7 @@ public class NamingProxy {
         }
         return StringUtils.EMPTY;
     }
-    
+
     /**
      * request api.
      *
@@ -241,13 +253,13 @@ public class NamingProxy {
             List<String> headers = Arrays.asList(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.version,
                     HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION, "Accept-Encoding",
                     "gzip,deflate,sdch", "Connection", "Keep-Alive", "Content-Encoding", "gzip");
-            
+
             RestResult<String> result;
-            
+
             if (!IPUtil.containsPort(curServer)) {
                 curServer = curServer + IPUtil.IP_PORT_SPLITER + EnvUtil.getPort();
             }
-            
+
             if (isPost) {
                 result = HttpClient.httpPost(
                         "http://" + curServer + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT
@@ -257,15 +269,15 @@ public class NamingProxy {
                         "http://" + curServer + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT
                                 + "/api/" + api, headers, params);
             }
-            
+
             if (result.ok()) {
                 return result.getData();
             }
-            
+
             if (HttpURLConnection.HTTP_NOT_MODIFIED == result.getCode()) {
                 return StringUtils.EMPTY;
             }
-            
+
             throw new IOException("failed to req API:" + "http://" + curServer + EnvUtil.getContextPath()
                     + UtilsAndCommons.NACOS_NAMING_CONTEXT + "/api/" + api + ". code:" + result.getCode() + " msg: "
                     + result.getMessage());
@@ -274,7 +286,7 @@ public class NamingProxy {
         }
         return StringUtils.EMPTY;
     }
-    
+
     /**
      * request api with common way.
      *
@@ -291,13 +303,13 @@ public class NamingProxy {
             List<String> headers = Arrays.asList("Client-Version", UtilsAndCommons.SERVER_VERSION, "User-Agent",
                     UtilsAndCommons.SERVER_VERSION, "Accept-Encoding", "gzip,deflate,sdch", "Connection", "Keep-Alive",
                     "Content-Encoding", "gzip");
-            
+
             RestResult<String> result;
-            
+
             if (!IPUtil.containsPort(curServer)) {
                 curServer = curServer + IPUtil.IP_PORT_SPLITER + EnvUtil.getPort();
             }
-            
+
             if (isPost) {
                 result = HttpClient.httpPost(
                         "http://" + curServer + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT + path,
@@ -307,15 +319,15 @@ public class NamingProxy {
                         "http://" + curServer + EnvUtil.getContextPath() + UtilsAndCommons.NACOS_NAMING_CONTEXT + path,
                         headers, params);
             }
-            
+
             if (result.ok()) {
                 return result.getData();
             }
-            
+
             if (HttpURLConnection.HTTP_NOT_MODIFIED == result.getCode()) {
                 return StringUtils.EMPTY;
             }
-            
+
             throw new IOException("failed to req API:" + "http://" + curServer + EnvUtil.getContextPath()
                     + UtilsAndCommons.NACOS_NAMING_CONTEXT + path + ". code:" + result.getCode() + " msg: " + result
                     .getMessage());
@@ -324,20 +336,20 @@ public class NamingProxy {
         }
         return StringUtils.EMPTY;
     }
-    
+
     public static class Request {
-        
+
         private Map<String, String> params = new HashMap<>(8);
-        
+
         public static Request newRequest() {
             return new Request();
         }
-        
+
         public Request appendParam(String key, String value) {
             params.put(key, value);
             return this;
         }
-        
+
         /**
          * Transfer to Url string.
          *

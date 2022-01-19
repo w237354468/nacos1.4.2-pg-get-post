@@ -23,12 +23,7 @@ import com.alibaba.nacos.console.security.nacos.NacosAuthConfig;
 import com.alibaba.nacos.console.security.nacos.roles.NacosRoleServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -41,10 +36,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/auth/roles")
 public class RoleController {
-    
+
     @Autowired
     private NacosRoleServiceImpl roleService;
-    
+
     /**
      * Get roles list.
      *
@@ -59,7 +54,7 @@ public class RoleController {
             @RequestParam(name = "username", defaultValue = "") String username) {
         return roleService.getRolesFromDatabase(username, pageNo, pageSize);
     }
-    
+
     /**
      * Fuzzy matching role name .
      *
@@ -71,7 +66,7 @@ public class RoleController {
     public List<String> searchRoles(@RequestParam String role) {
         return roleService.findRolesLikeRoleName(role);
     }
-    
+
     /**
      * Add a role to a user
      *
@@ -87,7 +82,7 @@ public class RoleController {
         roleService.addRole(role, username);
         return new RestResult<>(200, "add role ok!");
     }
-    
+
     /**
      * Delete a role. If no username is specified, all users under this role are deleted.
      *
@@ -95,7 +90,7 @@ public class RoleController {
      * @param username username
      * @return ok if succeed
      */
-    @DeleteMapping
+    @PostMapping("/delete")
     @Secured(resource = NacosAuthConfig.CONSOLE_RESOURCE_NAME_PREFIX + "roles", action = ActionTypes.WRITE)
     public Object deleteRole(@RequestParam String role,
             @RequestParam(name = "username", defaultValue = StringUtils.EMPTY) String username) {
@@ -106,5 +101,5 @@ public class RoleController {
         }
         return new RestResult<>(200, "delete role of user " + username + " ok!");
     }
-    
+
 }

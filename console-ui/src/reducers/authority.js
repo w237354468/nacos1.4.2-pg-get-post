@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Message } from '@alifd/next';
+import {Message} from '@alifd/next';
 import request from '../utils/request';
-import { UPDATE_USER, SIGN_IN, USER_LIST, ROLE_LIST, PERMISSIONS_LIST } from '../constants';
+import {PERMISSIONS_LIST, ROLE_LIST, USER_LIST} from '../constants';
 
 const initialState = {
   users: {
@@ -72,14 +72,14 @@ const searchUsers = username =>
  * @param {*} username
  */
 const deleteUser = username =>
-  request.delete('v1/auth/users', { params: { username } }).then(res => successMsg(res));
+  request.post('v1/auth/users/delete', {username}).then(res => successMsg(res));
 
 /**
  * 重置密码
  * @param {*} param0
  */
 const passwordReset = ([username, newPassword]) =>
-  request.put('v1/auth/users', { username, newPassword }).then(res => successMsg(res));
+  request.post('v1/auth/users/update', {username, newPassword}).then(res => successMsg(res));
 
 /**
  * 角色列表
@@ -107,8 +107,7 @@ const createRole = ([role, username]) =>
  * 删除角色
  * @param {*} param0
  */
-const deleteRole = role =>
-  request.delete('v1/auth/roles', { params: role }).then(res => successMsg(res));
+const deleteRole = role => request.post('v1/auth/roles/delete', role).then(res => successMsg(res));
 
 /**
  * 权限列表
@@ -131,7 +130,7 @@ const createPermission = ([role, resource, action]) =>
  * @param {*} param0
  */
 const deletePermission = permission =>
-  request.delete('v1/auth/permissions', { params: permission }).then(res => successMsg(res));
+  request.post('v1/auth/permissions/delete', permission).then(res => successMsg(res));
 
 export default (state = initialState, action) => {
   switch (action.type) {

@@ -43,30 +43,17 @@ import java.util.Map;
  * @author nacos
  */
 public class HttpClient {
-    
+
     private static final int TIME_OUT_MILLIS = 10000;
-    
+
     private static final int CON_TIME_OUT_MILLIS = 5000;
-    
+
     private static final NacosRestTemplate SYNC_NACOS_REST_TEMPLATE = HttpClientManager.getNacosRestTemplate();
-    
+
     private static final NacosRestTemplate APACHE_SYNC_NACOS_REST_TEMPLATE = HttpClientManager.getApacheRestTemplate();
-    
+
     private static final NacosAsyncRestTemplate ASYNC_REST_TEMPLATE = HttpClientManager.getAsyncRestTemplate();
-    
-    /**
-     * Request http delete method.
-     *
-     * @param url         url
-     * @param headers     headers
-     * @param paramValues params
-     * @return {@link RestResult} as response
-     */
-    public static RestResult<String> httpDelete(String url, List<String> headers, Map<String, String> paramValues) {
-        return request(url, headers, paramValues, StringUtils.EMPTY, CON_TIME_OUT_MILLIS, TIME_OUT_MILLIS, "UTF-8",
-                HttpMethod.DELETE);
-    }
-    
+
     /**
      * Request http get method.
      *
@@ -79,7 +66,7 @@ public class HttpClient {
         return request(url, headers, paramValues, StringUtils.EMPTY, CON_TIME_OUT_MILLIS, TIME_OUT_MILLIS, "UTF-8",
                 HttpMethod.GET);
     }
-    
+
     /**
      * Do http request.
      *
@@ -105,7 +92,7 @@ public class HttpClient {
         header.addParam(HttpHeaderConsts.REQUEST_SOURCE_HEADER, EnvUtil.getLocalAddress());
         header.addParam(HttpHeaderConsts.ACCEPT_CHARSET, encoding);
         AuthHeaderUtil.addIdentityToHeader(header);
-        
+
         HttpClientConfig httpClientConfig = HttpClientConfig.builder().setConTimeOutMillis(connectTimeout)
                 .setReadTimeOutMillis(readTimeout).build();
         Query query = Query.newInstance().initParams(paramValues);
@@ -119,7 +106,7 @@ public class HttpClient {
             return RestResult.<String>builder().withCode(500).withMsg(e.toString()).build();
         }
     }
-    
+
     /**
      * Request http get method by async.
      *
@@ -132,7 +119,7 @@ public class HttpClient {
             Callback<String> callback) throws Exception {
         asyncHttpRequest(url, headers, paramValues, callback, HttpMethod.GET);
     }
-    
+
     /**
      * Request http post method by async.
      *
@@ -145,20 +132,7 @@ public class HttpClient {
             Callback<String> callback) throws Exception {
         asyncHttpRequest(url, headers, paramValues, callback, HttpMethod.POST);
     }
-    
-    /**
-     * Request http delete method by async.
-     *
-     * @param url         url
-     * @param headers     headers
-     * @param paramValues params
-     * @param callback    callback after request execute
-     */
-    public static void asyncHttpDelete(String url, List<String> headers, Map<String, String> paramValues,
-            Callback<String> callback) throws Exception {
-        asyncHttpRequest(url, headers, paramValues, callback, HttpMethod.DELETE);
-    }
-    
+
     /**
      * Do http request by async.
      *
@@ -170,11 +144,11 @@ public class HttpClient {
      */
     public static void asyncHttpRequest(String url, List<String> headers, Map<String, String> paramValues,
             Callback<String> callback, String method) throws Exception {
-        
+
         Query query = Query.newInstance().initParams(paramValues);
         query.addParam("encoding", "UTF-8");
         query.addParam("nofix", "1");
-        
+
         Header header = Header.newInstance();
         if (CollectionUtils.isNotEmpty(headers)) {
             header.addAll(headers);
@@ -198,7 +172,7 @@ public class HttpClient {
                 throw new RuntimeException("not supported method:" + method);
         }
     }
-    
+
     /**
      * Request http post method by async with large body.
      *
@@ -211,7 +185,7 @@ public class HttpClient {
             throws Exception {
         asyncHttpPostLarge(url, headers, content.getBytes(), callback);
     }
-    
+
     /**
      * Request http post method by async with large body.
      *
@@ -229,29 +203,11 @@ public class HttpClient {
         AuthHeaderUtil.addIdentityToHeader(header);
         ASYNC_REST_TEMPLATE.post(url, header, Query.EMPTY, content, String.class, callback);
     }
-    
-    /**
-     * Request http delete method by async with large body.
-     *
-     * @param url      url
-     * @param headers  headers
-     * @param content  full request content
-     * @param callback callback after request execute
-     */
-    public static void asyncHttpDeleteLarge(String url, List<String> headers, String content, Callback<String> callback)
-            throws Exception {
-        Header header = Header.newInstance();
-        if (CollectionUtils.isNotEmpty(headers)) {
-            header.addAll(headers);
-        }
-        AuthHeaderUtil.addIdentityToHeader(header);
-        ASYNC_REST_TEMPLATE.delete(url, header, content, String.class, callback);
-    }
-    
+
     public static RestResult<String> httpPost(String url, List<String> headers, Map<String, String> paramValues) {
         return httpPost(url, headers, paramValues, "UTF-8");
     }
-    
+
     /**
      * Request http post method.
      *
@@ -277,46 +233,7 @@ public class HttpClient {
             return RestResult.<String>builder().withCode(500).withMsg(e.toString()).build();
         }
     }
-    
-    /**
-     * Request http put method by async with large body.
-     *
-     * @param url      url
-     * @param headers  headers
-     * @param content  full request content
-     * @param callback callback after request execute
-     */
-    public static void asyncHttpPutLarge(String url, Map<String, String> headers, byte[] content,
-            Callback<String> callback) throws Exception {
-        Header header = Header.newInstance();
-        if (MapUtils.isNotEmpty(headers)) {
-            header.addAll(headers);
-        }
-        AuthHeaderUtil.addIdentityToHeader(header);
-        ASYNC_REST_TEMPLATE.put(url, header, Query.EMPTY, content, String.class, callback);
-    }
-    
-    /**
-     * Request http put method with large body.
-     *
-     * @param url     url
-     * @param headers headers
-     * @param content full request content
-     * @return {@link RestResult} as response
-     */
-    public static RestResult<String> httpPutLarge(String url, Map<String, String> headers, byte[] content) {
-        Header header = Header.newInstance();
-        if (MapUtils.isNotEmpty(headers)) {
-            header.addAll(headers);
-        }
-        AuthHeaderUtil.addIdentityToHeader(header);
-        try {
-            return APACHE_SYNC_NACOS_REST_TEMPLATE.put(url, header, Query.EMPTY, content, String.class);
-        } catch (Exception e) {
-            return RestResult.<String>builder().withCode(500).withMsg(e.toString()).build();
-        }
-    }
-    
+
     /**
      * Request http get method with large body.
      *
@@ -337,7 +254,7 @@ public class HttpClient {
             return RestResult.<String>builder().withCode(500).withMsg(e.toString()).build();
         }
     }
-    
+
     /**
      * Request http post method with large body.
      *
@@ -358,7 +275,7 @@ public class HttpClient {
             return RestResult.<String>builder().withCode(500).withMsg(e.toString()).build();
         }
     }
-    
+
     /**
      * Translate parameter map.
      *
@@ -366,7 +283,7 @@ public class HttpClient {
      * @return new parameter
      */
     public static Map<String, String> translateParameterMap(Map<String, String[]> parameterMap) {
-        
+
         Map<String, String> map = new HashMap<>(16);
         for (String key : parameterMap.keySet()) {
             map.put(key, parameterMap.get(key)[0]);
