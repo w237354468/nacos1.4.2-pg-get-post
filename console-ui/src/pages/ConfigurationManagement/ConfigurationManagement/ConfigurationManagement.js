@@ -39,16 +39,15 @@ import RegionGroup from 'components/RegionGroup';
 import ShowCodeing from 'components/ShowCodeing';
 import DeleteDialog from 'components/DeleteDialog';
 import DashboardCard from './DashboardCard';
-import {getParams, request, setParams} from '@/globalLib';
-import {connect} from 'react-redux';
-import {getConfigs} from '../../../reducers/configuration';
+import { getParams, request, setParams } from '@/globalLib';
+import { connect } from 'react-redux';
+import { getConfigs } from '../../../reducers/configuration';
 
 import './index.scss';
-import {GLOBAL_PAGE_SIZE_LIST, LANGUAGE_KEY} from '../../../constants';
+import { GLOBAL_PAGE_SIZE_LIST, LANGUAGE_KEY } from '../../../constants';
 
-const {Panel} = Collapse;
+const { Panel } = Collapse;
 const configsTableSelected = new Map();
-
 @connect(
   state => ({
     configurations: state.configuration.configurations,
@@ -329,18 +328,10 @@ class ConfigurationManagement extends React.Component {
         </div>
       ),
       onOk: () => {
-        const url = `v1/cs/configs/delete`;
-        let tenantId = window.nownamespace || getParams('namespace') || '';
-        tenantId = tenantId === 'global' ? '' : tenantId;
+        const url = `v1/cs/configs/delete?dataId=${record.dataId}&group=${record.group}`;
         request({
           url,
           type: 'post',
-          contentType: 'application/x-www-form-urlencoded',
-          data: {
-            dataId: record.dataId,
-            group: record.group,
-            tenant: tenantId,
-          },
           success(res) {
             const _payload = {};
 
@@ -611,16 +602,12 @@ class ConfigurationManagement extends React.Component {
           </div>
         ),
         onOk: () => {
-          const url = `v1/cs/configs/delete/ids`;
-          let tenantId = window.nownamespace || getParams('namespace') || '';
-          tenantId = tenantId === 'global' ? '' : tenantId;
+          const url = `v1/cs/configs/delete/ids?delType=ids&ids=${Array.from(
+            configsTableSelected.keys()
+          ).join(',')}`;
           request({
             url,
             type: 'post',
-            data: {
-              ids: Array.from(configsTableSelected.keys()).join(','),
-              tenant: tenantId,
-            },
             success(res) {
               Message.success(locale.delSuccessMsg);
               self.getData();

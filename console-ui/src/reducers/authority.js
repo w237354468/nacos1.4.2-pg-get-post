@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Message} from '@alifd/next';
+import { Message } from '@alifd/next';
 import request from '../utils/request';
-import {PERMISSIONS_LIST, ROLE_LIST, USER_LIST} from '../constants';
+import { PERMISSIONS_LIST, ROLE_LIST, USER_LIST } from '../constants';
 
 const initialState = {
   users: {
@@ -72,14 +72,14 @@ const searchUsers = username =>
  * @param {*} username
  */
 const deleteUser = username =>
-  request.post('v1/auth/users/delete', {username}).then(res => successMsg(res));
+  request.post('v1/auth/users/delete', { username }).then(res => successMsg(res));
 
 /**
  * 重置密码
  * @param {*} param0
  */
 const passwordReset = ([username, newPassword]) =>
-  request.post('v1/auth/users/update', {username, newPassword}).then(res => successMsg(res));
+  request.post('v1/auth/users/update', { username, newPassword }).then(res => successMsg(res));
 
 /**
  * 角色列表

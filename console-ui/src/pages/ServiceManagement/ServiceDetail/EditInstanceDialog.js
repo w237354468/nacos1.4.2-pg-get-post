@@ -16,9 +16,9 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {request} from '../../../globalLib';
-import {ConfigProvider, Dialog, Form, Input, Message, Switch} from '@alifd/next';
-import {DIALOG_FORM_LAYOUT} from './constant';
+import { request } from '../../../globalLib';
+import { ConfigProvider, Dialog, Form, Input, Message, Switch } from '@alifd/next';
+import { DIALOG_FORM_LAYOUT } from './constant';
 import MonacoEditor from 'components/MonacoEditor';
 
 @ConfigProvider.config
@@ -68,8 +68,8 @@ class EditInstanceDialog extends React.Component {
     } = this.props;
     const { ip, port, ephemeral, weight, enabled, metadataText } = this.state.editInstance;
     request({
-      method: 'POST',
-      url: 'v1/ns/instance/update',
+      method: 'PUT',
+      url: 'v1/ns/instance',
       data: {
         serviceName,
         clusterName,
